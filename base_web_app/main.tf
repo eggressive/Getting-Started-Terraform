@@ -5,8 +5,8 @@
 provider "aws" {
   shared_config_files      = ["~/.aws/config"]
   shared_credentials_files = ["~/.aws/credentials"]
-  profile                  = "midev"
-  region     = "us-east-1"
+  profile                  = "tfuser"
+  region                   = "eu-central-1"
 }
 
 ##################################################################################
@@ -14,7 +14,7 @@ provider "aws" {
 ##################################################################################
 
 data "aws_ssm_parameter" "amzn2_linux" {
-  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64"
 }
 
 ##################################################################################
@@ -80,7 +80,7 @@ resource "aws_security_group" "nginx_sg" {
 # INSTANCES #
 resource "aws_instance" "nginx1" {
   ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
-  instance_type          = "t3.micro"
+  instance_type          = "t4g.micro"
   subnet_id              = aws_subnet.public_subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
 
