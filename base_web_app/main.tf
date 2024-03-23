@@ -3,10 +3,10 @@
 ##################################################################################
 
 provider "aws" {
-  shared_config_files      = ["~/.aws/config"]
-  shared_credentials_files = ["~/.aws/credentials"]
-  profile                  = "tfuser"
-  region                   = "eu-central-1"
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+  profile    = "tfuser"
+  region     = var.aws_region
 }
 
 ##################################################################################
@@ -23,20 +23,23 @@ data "aws_ssm_parameter" "amzn2_linux" {
 
 # NETWORKING #
 resource "aws_vpc" "app" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
+  cidr_block           = var.vpc_cidr_block
+  enable_dns_hostnames = var.enable_dns_hostnames
 
+  tags = local.common_tags
 }
 
 resource "aws_internet_gateway" "app" {
   vpc_id = aws_vpc.app.id
 
+  tags = local.common_tags
 }
 
 resource "aws_subnet" "public_subnet1" {
-  cidr_block              = "10.0.0.0/24"
+  cidr_block              = var.public_subnet_cidr_block
   vpc_id                  = aws_vpc.app.id
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = var.map_public_ip_on_launch
+  tags                    = local.common_tags
 }
 
 # ROUTING #
@@ -47,6 +50,8 @@ resource "aws_route_table" "app" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.app.id
   }
+
+  tags = local.common_tags
 }
 
 resource "aws_route_table_association" "app_subnet1" {
@@ -75,22 +80,25 @@ resource "aws_security_group" "nginx_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = local.common_tags
 }
 
 # INSTANCES #
 resource "aws_instance" "nginx1" {
   ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
-  instance_type          = "t4g.micro"
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.public_subnet1.id
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
 
   user_data = <<EOF
 #! /bin/bash
-sudo amazon-linux-extras install -y nginx1
+sudo amazon-linux-extras install -y nginx
 sudo service nginx start
 sudo rm /usr/share/nginx/html/index.html
 echo '<html><head><title>Taco Team Server</title></head><body style=\"background-color:#1F778D\"><p style=\"text-align: center;\"><span style=\"color:#FFFFFF;\"><span style=\"font-size:28px;\">You did it! Have a &#127790;</span></span></p></body></html>' | sudo tee /usr/share/nginx/html/index.html
 EOF
 
+  tags = local.common_tags
 }
 
