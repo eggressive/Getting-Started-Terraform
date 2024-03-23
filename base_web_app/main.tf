@@ -3,9 +3,9 @@
 ##################################################################################
 
 provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  profile    = "tfuser"
+  # access_key = var.aws_access_key_id
+  # secret_key = var.aws_secrets_access_key
+  # profile    = "tfuser"
   region     = var.aws_region
 }
 
