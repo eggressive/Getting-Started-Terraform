@@ -1,13 +1,15 @@
-variable "aws_access_key_id" {
+variable "aws_access_key" {
   type        = string
   description = "AWS access key"
   sensitive   = true
+  default = ""
 }
 
-variable "aws_secrets_access_key" {
+variable "aws_secret_key" {
   type        = string
   description = "AWS secret key"
   sensitive   = true
+  default = ""
 }
 
 variable "aws_region" {
