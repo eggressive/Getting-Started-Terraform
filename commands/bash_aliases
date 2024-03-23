@@ -1,0 +1,32 @@
+alias ls='ls --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias lr='ls -ltr'
+alias lrecent='ls -lt | head'
+alias lsize='ls --human-readable --size -1 -S --classify'
+alias ldir='ls -d */'
+alias lfile='ls -p | grep -v /'
+alias ltree='tree -Csu'
+
+#show mounts
+alias mnt='mount | awk -F" " '\''{ printf "%s\t%s\n",$1,$3; }'\'' | column -t | egrep ^/dev/ | sort'
+
+alias hs='history|grep'
+alias count='find . -type f | wc -l'
+
+# python venv
+alias ve='python3 -m venv ./venv'
+alias va='source ./venv/bin/activate'
+
+# git
+alias cg='cd `git rev-parse --show-toplevel`'
+
+# terraform
+alias tf='terraform'
+alias tfapply='terraform apply --auto-approve'
+alias tfdestroy='terraform destroy'
+alias tfinit='terraform init'
+alias tfplan='terraform plan'
+alias tfshow='terraform show'
+alias tfv='terraform validate'
