@@ -1,20 +1,9 @@
 ##################################################################################
-# PROVIDERS
-##################################################################################
-
-provider "aws" {
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-  # profile    = "tfuser"
-  region = var.aws_region
-}
-
-##################################################################################
 # DATA
 ##################################################################################
 
-data "aws_ssm_parameter" "amzn2_linux" {
-  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64"
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 ##################################################################################
@@ -36,9 +25,18 @@ resource "aws_internet_gateway" "app" {
 }
 
 resource "aws_subnet" "public_subnet1" {
-  cidr_block              = var.public_subnet_cidr_block
+  cidr_block              = var.public_subnets_cidr_block[0]
   vpc_id                  = aws_vpc.app.id
   map_public_ip_on_launch = var.map_public_ip_on_launch
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  tags                    = local.common_tags
+}
+
+resource "aws_subnet" "public_subnet2" {
+  cidr_block              = var.public_subnets_cidr_block[1]
+  vpc_id                  = aws_vpc.app.id
+  map_public_ip_on_launch = var.map_public_ip_on_launch
+  availability_zone       = data.aws_availability_zones.available.names[1]
   tags                    = local.common_tags
 }
 
@@ -59,10 +57,47 @@ resource "aws_route_table_association" "app_subnet1" {
   route_table_id = aws_route_table.app.id
 }
 
+resource "aws_route_table_association" "app_subnet2" {
+  subnet_id      = aws_subnet.public_subnet2.id
+  route_table_id = aws_route_table.app.id
+}
+
 # SECURITY GROUPS #
 # Nginx security group 
 resource "aws_security_group" "nginx_sg" {
   name   = "nginx_sg"
+  vpc_id = aws_vpc.app.id
+
+  # HTTP access from anywhere
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr_block]
+  }
+
+  # SSH access from own IP
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["35.205.65.4/32"]
+  }
+
+  # outbound internet access
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.common_tags
+}
+
+# ALB security group 
+resource "aws_security_group" "alb_sg" {
+  name   = "nginx_alb_sg"
   vpc_id = aws_vpc.app.id
 
   # HTTP access from anywhere
@@ -83,22 +118,3 @@ resource "aws_security_group" "nginx_sg" {
 
   tags = local.common_tags
 }
-
-# INSTANCES #
-resource "aws_instance" "nginx1" {
-  ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
-  instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public_subnet1.id
-  vpc_security_group_ids = [aws_security_group.nginx_sg.id]
-
-  user_data = <<EOF
-#! /bin/bash
-sudo amazon-linux-extras install -y nginx1
-sudo service nginx start
-sudo rm /usr/share/nginx/html/index.html
-echo '<html><head><title>Taco Team Server</title></head><body style=\"background-color:#1F778D\"><p style=\"text-align: center;\"><span style=\"color:#FFFFFF;\"><span style=\"font-size:28px;\">You did it! Have a &#127790;</span></span></p></body></html>' | sudo tee /usr/share/nginx/html/index.html
-EOF
-
-  tags = local.common_tags
-}
-
