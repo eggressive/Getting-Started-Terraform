@@ -3,9 +3,12 @@ image:
 
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
+  - name: Update and upgrade packages
+    init: |
+      sudo apt update
+      sudo apt upgrade -y
   - name: Initalise terraform
     init: |
-      # export AWS_DEFAULT_REGION="eu-central-1"
       cp ./commands/bash_aliases ~/.bash_aliases
       source ~/.bashrc
     command: |
