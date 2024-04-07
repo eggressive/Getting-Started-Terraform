@@ -81,7 +81,7 @@ resource "aws_security_group" "nginx_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["35.205.65.4/32"]
+    cidr_blocks = ["35.195.233.154/32"]
   }
 
   # outbound internet access
