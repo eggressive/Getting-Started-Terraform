@@ -6,7 +6,7 @@
 *.tfstate.*
 
 # .tfvars files
-*.tfvars
+#*.tfvars
 
 # .tfplan files
 *.tfplan
@@ -20,3 +20,4 @@
 # working directory for web app
 /globo_web_app/*
 
+base_web_app/local.ip
