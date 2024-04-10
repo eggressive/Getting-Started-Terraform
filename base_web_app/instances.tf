@@ -36,7 +36,7 @@ resource "aws_instance" "nginx1" {
   depends_on             = [aws_iam_role_policy.allow_s3_all]
   user_data              = <<EOF
 #! /bin/bash
-sudo amazon-linux-extras install -y nginx1
+sudo dnf install -y nginx
 sudo service nginx start
 aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/index.html /home/ec2-user/index.html
 aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/Globo_logo_Vert.png /home/ec2-user/Globo_logo_Vert.png
@@ -58,7 +58,7 @@ resource "aws_instance" "nginx2" {
   depends_on             = [aws_iam_role_policy.allow_s3_all]
   user_data              = <<EOF
 #! /bin/bash
-sudo amazon-linux-extras install -y nginx1
+sudo dnf install -y nginx
 sudo service nginx start
 aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/index.html /home/ec2-user/index.html
 aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/Globo_logo_Vert.png /home/ec2-user/Globo_logo_Vert.png
