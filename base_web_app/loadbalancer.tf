@@ -28,7 +28,7 @@ resource "aws_lb_target_group" "nginx_tg" {
   protocol = "HTTP"
   vpc_id   = aws_vpc.app.id
 
-  tags     = local.common_tags
+  tags = local.common_tags
 }
 
 # aws_lb_listener
