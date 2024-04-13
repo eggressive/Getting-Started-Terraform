@@ -28,10 +28,22 @@ variable "vpc_cidr_block" {
   default     = "10.0.0.0/16"
 }
 
+variable "vpc_public_subnet_count" {
+  type        = number
+  description = "Number of public subnets in VPC"
+  default     = 2
+}
+
 variable "public_subnets_cidr_block" {
   type        = list(string)
   description = "CIDR block for public subnets in VPC"
   default     = ["10.0.0.0/24", "10.0.1.0/24"]
+}
+
+variable "instance_count" {
+  type        = number
+  description = "Number of instances to create"
+  default     = 2
 }
 
 variable "instance_type" {
@@ -66,4 +78,16 @@ variable "project_name" {
 variable "billing_code" {
   type        = string
   description = "Billing code for the project"
+}
+
+variable "naming_prefix" {
+  type        = string
+  description = "Prefix for naming resources"
+  default     = "globo-web-app"
+}
+
+variable "environment" {
+  type        = string
+  description = "Environment for the project"
+  default     = "dev"
 }

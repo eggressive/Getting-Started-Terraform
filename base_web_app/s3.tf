@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "bucket" {
   bucket        = local.s3_bucket_name
   force_destroy = true
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-s3-bucket" })
 }
 
 resource "aws_s3_bucket_policy" "web_bucket" {
@@ -47,14 +47,9 @@ resource "aws_s3_bucket_policy" "web_bucket" {
   })
 }
 
-resource "aws_s3_object" "index_html" {
-  bucket = aws_s3_bucket.bucket.id
-  key    = "website/index.html"
-  source = "./website/index.html"
-}
-
-resource "aws_s3_object" "logo_png" {
-  bucket = aws_s3_bucket.bucket.id
-  key    = "website/Globo_logo_Vert.png"
-  source = "./website/Globo_logo_Vert.png"
+resource "aws_s3_object" "website_content" {
+  for_each = local.website_content
+  bucket   = aws_s3_bucket.bucket.id
+  key      = each.value
+  source   = "${path.root}${each.value}"
 }
