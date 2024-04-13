@@ -1,6 +1,9 @@
 # aws_elb_service_account
 data "aws_elb_service_account" "root" {}
 
+# aws_elb_service_account
+data "aws_elb_service_account" "root" {}
+
 # aws_lb
 resource "aws_lb" "nginx" {
   name               = "${local.naming_prefix}-alb"
