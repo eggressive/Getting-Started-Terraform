@@ -15,7 +15,7 @@ resource "tls_private_key" "tls_key" {
 }
 
 resource "aws_key_pair" "ec2_keypair" {
-  key_name   = "ec2_keypair"
+  key_name   = "${local.naming_prefix}-ec2_keypair"
   public_key = tls_private_key.tls_key.public_key_openssh
 }
 
@@ -30,28 +30,22 @@ resource "aws_instance" "nginx_instance" {
   count                  = var.instance_count
   ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public_subnets[count.index].id
+  subnet_id              = aws_subnet.public_subnets[(count.index % var.vpc_public_subnet_count)].id
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
   key_name               = aws_key_pair.ec2_keypair.key_name
   iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
   depends_on             = [aws_iam_role_policy.allow_s3_all]
-  user_data              = <<EOF
-#! /bin/bash
-sudo dnf install -y nginx
-sudo service nginx start
-aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/index.html /home/ec2-user/index.html
-aws s3 cp s3://${aws_s3_bucket.bucket.id}/website/Globo_logo_Vert.png /home/ec2-user/Globo_logo_Vert.png
-sudo rm /usr/share/nginx/html/index.html
-sudo cp /home/ec2-user/index.html /usr/share/nginx/html/index.html
-sudo cp /home/ec2-user/Globo_logo_Vert.png /usr/share/nginx/html/Globo_logo_Vert.png
-EOF
 
-  tags = local.common_tags
+  user_data = templatefile("${path.module}/templates/startup_script.tpl", {
+    s3_bucket_name = aws_s3_bucket.bucket.id
+  })
+
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-nginx-${count.index}" })
 }
 
 # S3 access for instances
 resource "aws_iam_role" "allow_nginx_s3" {
-  name = "allow_nginx_s3"
+  name = "${local.naming_prefix}-allow-nginx-s3-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -67,11 +61,11 @@ resource "aws_iam_role" "allow_nginx_s3" {
     ]
   })
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-allow-nginx-s3-role" })
 }
 
 resource "aws_iam_role_policy" "allow_s3_all" {
-  name = "allow_s3_all"
+  name = "${local.naming_prefix}-allow-s3-all-policy"
   role = aws_iam_role.allow_nginx_s3.id
 
   policy = jsonencode({
@@ -92,7 +86,7 @@ resource "aws_iam_role_policy" "allow_s3_all" {
 }
 
 resource "aws_iam_instance_profile" "nginx_profile" {
-  name = "nginx_profile"
+  name = "${local.naming_prefix}-nginx-profile"
   role = aws_iam_role.allow_nginx_s3.name
 
   tags = local.common_tags

@@ -3,11 +3,11 @@ data "aws_elb_service_account" "root" {}
 
 # aws_lb
 resource "aws_lb" "nginx" {
-  name               = "globo-web-alb"
+  name               = "${local.naming_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = [aws_subnet.public_subnets[*].id]
+  subnets            = aws_subnet.public_subnets[*].id
   depends_on         = [aws_s3_bucket_policy.web_bucket]
 
   enable_deletion_protection = false
@@ -18,17 +18,17 @@ resource "aws_lb" "nginx" {
     enabled = true
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-alb" })
 }
 
 # aws_lb_target_group
 resource "aws_lb_target_group" "nginx_tg" {
-  name     = "nginx-alb-tg"
+  name     = "${local.naming_prefix}-nginx-alb-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.app.id
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-nginx-alb-tg" })
 }
 
 # aws_lb_listener
@@ -42,7 +42,7 @@ resource "aws_lb_listener" "nginx" {
     target_group_arn = aws_lb_target_group.nginx_tg.arn
   }
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-nginx-lb-listener" })
 }
 
 # aws_lb_target_group_attachment

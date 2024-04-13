@@ -3,7 +3,7 @@ output "ALB_public_dns" {
   description = "ALB public DNS"
 }
 
-output "aws_instance_public_ip" {
+output "aws_instances_public_ip" {
   value       = aws_instance.nginx_instance[*].public_ip
   description = "Public IP for instance"
 }

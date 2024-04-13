@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "bucket" {
   bucket        = local.s3_bucket_name
   force_destroy = true
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Name = "${local.naming_prefix}-s3-bucket" })
 }
 
 resource "aws_s3_bucket_policy" "web_bucket" {
