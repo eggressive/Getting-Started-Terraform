@@ -30,7 +30,7 @@ resource "aws_instance" "nginx_instance" {
   count                  = var.instance_count
   ami                    = nonsensitive(data.aws_ssm_parameter.amzn2_linux.value)
   instance_type          = var.instance_type
-  subnet_id              = aws_subnet.public_subnets[(count.index % var.vpc_public_subnet_count)].id
+  subnet_id              = module.app.public_subnets[count.index]
   vpc_security_group_ids = [aws_security_group.nginx_sg.id]
   key_name               = aws_key_pair.ec2_keypair.key_name
   iam_instance_profile   = aws_iam_instance_profile.nginx_profile.name
